@@ -1,0 +1,64 @@
+import json
+import math
+
+plaatsen = {}
+
+size(1225, 850)
+background('adam.psd')
+
+def mapValue(value, fromMin, fromMax, toMin, toMax):
+    # Figure out how 'wide' each range is
+    fromSpan = fromMax - fromMin
+    toSpan = toMax - toMin
+    
+    # Convert the from range into a 0-1 range (float)
+    valueScaled = float(value - fromMin) / float(fromSpan)
+    
+    # Convert the 0-1 range into a value in the to range.
+    return toMin + (valueScaled * toSpan)
+
+def xOfDot(lon):
+    return mapValue(lon, 4.866383, 4.9345, 0, WIDTH)
+
+def yOfDot(lat):
+    return mapValue(lat, 52.355444, 52.382753, HEIGHT, 0)
+
+def floatfromstring(string):
+    return float(string.replace(',','.'))
+
+with open('amsterdam.json') as infile:
+    galleryData = json.load(infile)
+
+for gallery in galleryData:
+	if gallery.has_key('location'):
+	    locationdata= gallery['location']
+            # convert lat / lon
+            x = xOfDot(floatfromstring(locationdata['longitude']))
+            y = yOfDot(floatfromstring(locationdata['latitude']))
+            # make key for x and y
+            coord = "x" + str(x) + "y" + str(y)
+            if plaatsen.has_key(coord):
+                y += plaatsen[coord] * 5
+                plaatsen[coord] += 1
+            else:
+                plaatsen[coord] = 1
+            diameter = 10.0
+            dates = gallery["dates"]
+            jaartal = 2017
+            if dates:
+                #print dates
+                if dates.has_key('startdate'):
+                    datum = dates['startdate']
+                    #print datum.split('-')
+                    jaartal = int(datum.split('-')[2])
+                    print jaartal
+            r = mapValue(jaartal, 2010, 2017, 219 / 255.0, 60 / 255.0)
+            g = mapValue(jaartal, 2010, 2017, 7 / 255.0, 100 / 255.0)
+            b = mapValue(jaartal, 2010, 2017, 7 / 255.0, 228 / 255.0)
+            fill(r, g, b)
+            oval(x, y, diameter, diameter)
+            fill(0)
+            font('helvetica', 8,)
+            text(gallery["title"], x + 14, y ,align=CENTER)
+        
+
